@@ -32,7 +32,7 @@ signals:
 public slots:
     void renderLater();
     void renderNow();
-    void renderPixmap(QPixmap pixmap);
+    void renderPixmap(QPixmap pixmap, bool isTop);
     void updateSettings();
     void handleStreamStateChanged(StreamWorker::State state);
 
@@ -45,9 +45,9 @@ protected:
 private:
     QBackingStore *m_backingStore;
     bool m_update_pending;
-    QPixmap pixmap;
+    QPixmap top_pixmap;
+    QPixmap bot_pixmap;
     QSize b_size;
-    bool istop;
     bool active;
     QSettings config;
     double scale;

@@ -24,16 +24,14 @@ const char*  CFG_SMOOTH = "smoothing";
 const bool   DEF_SMOOTH = false;
 }
 
-StreamWindow::StreamWindow(bool top, QWindow *parent) :
+StreamWindow::StreamWindow(QWindow *parent) :
     QWindow(parent),
     m_update_pending(false),
-    b_size(320, 240),
-    istop(top),
+    b_size(400, 480),
     active(false),
     config(qApp->applicationName())
 {
     create();
-    if (istop) b_size.setWidth(400);
     updateSettings();
     m_backingStore = new QBackingStore(this);
 }
@@ -72,9 +70,11 @@ void StreamWindow::renderNow()
 
 void StreamWindow::render(QPainter *painter)
 {
-    QTransform xform(0, -1, 1, 0, 0, 0);
-    QPixmap scr = pixmap.transformed(xform);
-    painter->drawPixmap(0,0,scr);
+    QTransform xformTop(0, -1, 1, 0, 0, 0);
+    QPixmap scrTop = top_pixmap.transformed(xform);
+    QPixmap scrBot = bot_pixmap.transformed(xform);
+    painter->drawPixmap(0, 0, scrTop);
+    painter->drawPixmap(40, 240, scrBot);
 }
 
 void StreamWindow::renderLater()
@@ -85,22 +85,30 @@ void StreamWindow::renderLater()
     }
 }
 
-void StreamWindow::renderPixmap(QPixmap pixmap)
+void StreamWindow::renderPixmap(QPixmap pixmap, bool isTop)
 {
-    this->pixmap = pixmap;
+    if (isTop)
+    {
+        this->top_pixmap = pixmap;
+    }
+    else
+    {
+        this->bot_pixmap = pixmap;
+    }
     renderLater();
 }
 
 void StreamWindow::updateSettings()
 {
     smooth = config.value(CFG_SMOOTH, DEF_SMOOTH).toBool();
-    if (istop)
-        scale = config.value(CFG_TSCALE, DEF_TSCALE).toDouble();
-    else
-        scale = config.value(CFG_BSCALE, DEF_BSCALE).toDouble();
-    setMaximumSize(b_size*scale);
-    setMinimumSize(b_size*scale);
-    resize(b_size*scale);
+    scale = config.value(CFG_TSCALE, DEF_TSCALE).toDouble();
+    // if (istop)
+    //     scale = config.value(CFG_TSCALE, DEF_TSCALE).toDouble();
+    // else
+    //     scale = config.value(CFG_BSCALE, DEF_BSCALE).toDouble();
+    setMaximumSize(b_size * scale);
+    setMinimumSize(b_size * scale);
+    resize(b_size * scale);
     if (active && scale > 0)
         show();
     else
@@ -110,14 +118,14 @@ void StreamWindow::updateSettings()
 void StreamWindow::handleStreamStateChanged(StreamWorker::State state)
 {
     switch (state) {
-    case StreamWorker::Disconnected:
-        hide();
-        active = false;
-        break;
-    case StreamWorker::Connected:
-        active = true;
-        updateSettings();
-        break;
+        case StreamWorker::Disconnected:
+            hide();
+            active = false;
+            break;
+        case StreamWorker::Connected:
+            active = true;
+            updateSettings();
+            break;
     }
 }
 

@@ -25,14 +25,14 @@
 void messageHandler(QtMsgType t, const QMessageLogContext &c, const QString &m);
 
 const QString logfile = QStandardPaths::writableLocation(
-            QStandardPaths::CacheLocation)+"/cutentr.log";
+                            QStandardPaths::CacheLocation) + "/cutentr.log";
 
 int main(int argc, char *argv[])
 {
     QFile file(logfile);
     file.open(QIODevice::WriteOnly);
     QTextStream(&file) << "-- " << QDateTime::currentDateTime().toString()
-        << " --\n";
+                       << " --\n";
     file.close();
 
     qDebug() << "Logfile:" << logfile;
@@ -45,11 +45,9 @@ int main(int argc, char *argv[])
     a.setApplicationVersion("v0.3.1");
 
     MainWindow w;
-    StreamWindow top(true);
-    StreamWindow bot(false);
+    StreamWindow window();
 
-    top.setTitle("Top screen - cuteNTR");
-    bot.setTitle("Bottom screen - cuteNTR");
+    window.setTitle("Game Screen - cuteNTR");
 
     QThread *t_ntr = new QThread;
     Ntr ntr;
@@ -68,51 +66,28 @@ int main(int argc, char *argv[])
     qRegisterMetaType<StreamWorker::State>("StreamWorker::State");
 
     /* Connect MainWindow signals */
-    QObject::connect(&w, SIGNAL(ntrCommand(Ntr::Command,QVector<uint32_t>,
-                    uint32_t,QByteArray)),
-            &ntr, SLOT(sendCommand(Ntr::Command,QVector<uint32_t>,
-                    uint32_t,QByteArray)));
-    QObject::connect(&w, SIGNAL(connectToDS()),
-            &ntr, SLOT(connectToDS()));
-    QObject::connect(&w, SIGNAL(disconnectFromDS()),
-            &ntr, SLOT(disconnectFromDS()));
-    QObject::connect(&w, SIGNAL(sendNfcPatch(int)),
-            &helper, SLOT(writeNfcPatch(int)));
-    QObject::connect(&w, SIGNAL(stopStream()),
-            &stream, SLOT(stopStream()), Qt::DirectConnection);
-    QObject::connect(&w, SIGNAL(topSettingsChanged()),
-            &top, SLOT(updateSettings()));
-    QObject::connect(&w, SIGNAL(botSettingsChanged()),
-            &bot, SLOT(updateSettings()));
+    QObject::connect(&w, SIGNAL(ntrCommand(Ntr::Command, QVector<uint32_t>, uint32_t, QByteArray)), &ntr, SLOT(sendCommand(Ntr::Command, QVector<uint32_t>, uint32_t, QByteArray)));
+    QObject::connect(&w, SIGNAL(connectToDS()), &ntr, SLOT(connectToDS()));
+    QObject::connect(&w, SIGNAL(disconnectFromDS()), &ntr, SLOT(disconnectFromDS()));
+    QObject::connect(&w, SIGNAL(sendNfcPatch(int)), &helper, SLOT(writeNfcPatch(int)));
+    QObject::connect(&w, SIGNAL(stopStream()), &stream, SLOT(stopStream()), Qt::DirectConnection);
+    QObject::connect(&w, SIGNAL(windowSettingsChanged()), &window, SLOT(updateSettings()));
 
     /* Connect Ntr signals */
-    QObject::connect(&ntr, SIGNAL(streamReady()),
-            &stream, SLOT(stream()));
-    QObject::connect(&ntr, SIGNAL(stateChanged(Ntr::State)),
-            &w, SLOT(handleNtrStateChanged(Ntr::State)));
-    QObject::connect(&ntr, SIGNAL(bufferFilled(QByteArray)),
-            &helper, SLOT(handleInfo(QByteArray)));
+    QObject::connect(&ntr, SIGNAL(streamReady()), &stream, SLOT(stream()));
+    QObject::connect(&ntr, SIGNAL(stateChanged(Ntr::State)), &w, SLOT(handleNtrStateChanged(Ntr::State)));
+    QObject::connect(&ntr, SIGNAL(bufferFilled(QByteArray)), &helper, SLOT(handleInfo(QByteArray)));
 
-    QObject::connect(t_ntr, SIGNAL(finished()),
-            &ntr, SLOT(deleteLater()));
+    QObject::connect(t_ntr, SIGNAL(finished()), &ntr, SLOT(deleteLater()));
 
     /* Connect NtrUtility signals */
-    QObject::connect(&helper, SIGNAL(ntrCommand(Ntr::Command,
-                    QVector<uint32_t>,uint32_t,QByteArray)),
-            &ntr, SLOT(sendCommand(Ntr::Command,QVector<uint32_t>,
-                    uint32_t,QByteArray)));
+    QObject::connect(&helper, SIGNAL(ntrCommand(Ntr::Command, QVector<uint32_t>, uint32_t, QByteArray)), &ntr, SLOT(sendCommand(Ntr::Command, QVector<uint32_t>, uint32_t, QByteArray)));
 
     /* Connect Stream signals */
-    QObject::connect(&stream, SIGNAL(topImageReady(QPixmap)),
-            &top, SLOT(renderPixmap(QPixmap)));
-    QObject::connect(&stream, SIGNAL(botImageReady(QPixmap)),
-            &bot, SLOT(renderPixmap(QPixmap)));
-    QObject::connect(&stream, SIGNAL(stateChanged(StreamWorker::State)),
-            &w, SLOT(handleStreamStateChanged(StreamWorker::State)));
-    QObject::connect(&stream, SIGNAL(stateChanged(StreamWorker::State)),
-            &top, SLOT(handleStreamStateChanged(StreamWorker::State)));
-    QObject::connect(&stream, SIGNAL(stateChanged(StreamWorker::State)),
-            &bot, SLOT(handleStreamStateChanged(StreamWorker::State)));
+    QObject::connect(&stream, SIGNAL(topImageReady(QPixmap)), &window, SLOT(renderPixmap(QPixmap, true)));
+    QObject::connect(&stream, SIGNAL(botImageReady(QPixmap)), &window, SLOT(renderPixmap(QPixmap, false)));
+    QObject::connect(&stream, SIGNAL(stateChanged(StreamWorker::State)), &w, SLOT(handleStreamStateChanged(StreamWorker::State)));
+    QObject::connect(&stream, SIGNAL(stateChanged(StreamWorker::State)), &window, SLOT(handleStreamStateChanged(StreamWorker::State)));
 
     w.show();
     t_ntr->start();
@@ -124,27 +99,27 @@ void messageHandler(QtMsgType t, const QMessageLogContext &c, const QString &m)
 {
     QString suff;
     QFile file(logfile);
-    file.open(QIODevice::WriteOnly|QIODevice::Append);
+    file.open(QIODevice::WriteOnly | QIODevice::Append);
     QTextStream log(&file);
     if (c.function)
         suff = QString(" - [%1]").arg(c.function);
-    switch(t) {
+    switch (t) {
 #if QT_VERSION >= 0x050500
-    case QtInfoMsg:
+        case QtInfoMsg:
 #endif
-    case QtDebugMsg:
-        log << "[INFO] " << m << '\n';
-        break;
-    case QtWarningMsg:
-        log << "[WARN] " << m << suff << '\n';
-        break;
-    case QtCriticalMsg:
-        log << "[CRIT] " << m << suff << '\n';
-        break;
-    case QtFatalMsg:
-        log << "[CRIT] " << m << suff << '\n';
-        exit(1);
-        break;
+        case QtDebugMsg:
+            log << "[INFO] " << m << '\n';
+            break;
+        case QtWarningMsg:
+            log << "[WARN] " << m << suff << '\n';
+            break;
+        case QtCriticalMsg:
+            log << "[CRIT] " << m << suff << '\n';
+            break;
+        case QtFatalMsg:
+            log << "[CRIT] " << m << suff << '\n';
+            exit(1);
+            break;
     }
     file.close();
 }
