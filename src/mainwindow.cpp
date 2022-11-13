@@ -48,7 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->dsIP->setText(config.value(CFG_IP, DEF_IP).toString());
     ui->qosValue->setValue(config.value(CFG_QOSVAL, DEF_QOSVAL).toInt());
     ui->priMode->setCurrentIndex(
-            config.value(CFG_PRIMODE, DEF_PRIMODE).toInt());
+        config.value(CFG_PRIMODE, DEF_PRIMODE).toInt());
     ui->priFact->setValue(config.value(CFG_PRIFACT, DEF_PRIFACT).toInt());
     ui->jpegQuality->setValue(config.value(CFG_JPGQUAL, DEF_JPGQUAL).toInt());
     ui->tScale->setValue(config.value(CFG_TSCALE, DEF_TSCALE).toFloat());
@@ -74,17 +74,17 @@ void MainWindow::closeEvent(QCloseEvent*)
 void MainWindow::handleNtrStateChanged(Ntr::State state)
 {
     switch (state) {
-    case Ntr::Connected:
-        debugging = true;
-        ui->connectButton->setText("Disconnect");
-        ui->dsIP->setEnabled(false);
-        break;
-    case Ntr::Disconnected:
-        debugging = false;
-        if (!streaming)
-            ui->dsIP->setEnabled(true);
-        ui->connectButton->setText("Connect");
-        break;
+        case Ntr::Connected:
+            debugging = true;
+            ui->connectButton->setText("Disconnect");
+            ui->dsIP->setEnabled(false);
+            break;
+        case Ntr::Disconnected:
+            debugging = false;
+            if (!streaming)
+                ui->dsIP->setEnabled(true);
+            ui->connectButton->setText("Connect");
+            break;
     }
     ui->connectButton->setEnabled(true);
 }
@@ -92,25 +92,25 @@ void MainWindow::handleNtrStateChanged(Ntr::State state)
 void MainWindow::handleStreamStateChanged(StreamWorker::State state)
 {
     switch (state) {
-    case StreamWorker::Disconnected:
-        streaming = false;
-        if (!debugging)
-            ui->dsIP->setEnabled(true);
-        ui->jpegQuality->setEnabled(true);
-        ui->priFact->setEnabled(true);
-        ui->priMode->setEnabled(true);
-        ui->qosValue->setEnabled(true);
-        ui->streamButton->setText("Stream");
-        break;
-    case StreamWorker::Connected:
-        streaming = true;
-        ui->dsIP->setEnabled(false);
-        ui->jpegQuality->setEnabled(false);
-        ui->priFact->setEnabled(false);
-        ui->priMode->setEnabled(false);
-        ui->qosValue->setEnabled(false);
-        ui->streamButton->setText("Stop");
-        break;
+        case StreamWorker::Disconnected:
+            streaming = false;
+            if (!debugging)
+                ui->dsIP->setEnabled(true);
+            ui->jpegQuality->setEnabled(true);
+            ui->priFact->setEnabled(true);
+            ui->priMode->setEnabled(true);
+            ui->qosValue->setEnabled(true);
+            ui->streamButton->setText("Stream");
+            break;
+        case StreamWorker::Connected:
+            streaming = true;
+            ui->dsIP->setEnabled(false);
+            ui->jpegQuality->setEnabled(false);
+            ui->priFact->setEnabled(false);
+            ui->priMode->setEnabled(false);
+            ui->qosValue->setEnabled(false);
+            ui->streamButton->setText("Stop");
+            break;
     }
     ui->streamButton->setEnabled(true);
 }
@@ -159,18 +159,17 @@ void MainWindow::on_sendNfcPatch_clicked()
 void MainWindow::on_tScale_valueChanged(double scale)
 {
     config.setValue(CFG_TSCALE, scale);
-    emit topSettingsChanged();
+    emit windowSettingsChanged();
 }
 
 void MainWindow::on_bScale_valueChanged(double scale)
 {
     config.setValue(CFG_BSCALE, scale);
-    emit botSettingsChanged();
+    emit windowSettingsChanged();
 }
 
 void MainWindow::on_smooth_stateChanged(int state)
 {
     config.setValue(CFG_SMOOTH, state != 0);
-    emit topSettingsChanged();
-    emit botSettingsChanged();
+    emit windowSettingsChanged();
 }

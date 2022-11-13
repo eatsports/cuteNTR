@@ -86,8 +86,8 @@ int StreamWorker::readJPEG(QByteArray &jpeg)
     buf.truncate(r);
     cur_id = buf.at(0);
     do {
-        jpeg.append(buf.right(r-4));
-        if ((buf.at(1)&0xf0)==0x10) {
+        jpeg.append(buf.right(r - 4));
+        if ((buf.at(1) & 0xf0) == 0x10) {
             break;
         }
         if (!rcv_sock->waitForReadyRead(5000)) {
@@ -109,5 +109,5 @@ int StreamWorker::readJPEG(QByteArray &jpeg)
         return -1;
     }
 
-    return (buf.at(1)&0x0f);
+    return (buf.at(1) & 0x0f);
 }

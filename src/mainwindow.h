@@ -44,12 +44,11 @@ public slots:
 signals:
     void connectToDS();
     void disconnectFromDS();
-    void ntrCommand(Ntr::Command, QVector<uint32_t> a={}, uint32_t=0,
-                    QByteArray="");
+    void ntrCommand(Ntr::Command, QVector<uint32_t> a = {}, uint32_t = 0,
+                    QByteArray = "");
     void stopStream();
     void sendNfcPatch(int);
-    void topSettingsChanged();
-    void botSettingsChanged();
+    void windowSettingsChanged();
 
 private slots:
     void on_connectButton_clicked();
